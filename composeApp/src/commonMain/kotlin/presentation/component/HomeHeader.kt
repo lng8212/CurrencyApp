@@ -1,6 +1,8 @@
 package presentation.component
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,6 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +45,7 @@ import currencyapp.composeapp.generated.resources.refresh_ic
 import currencyapp.composeapp.generated.resources.switch_ic
 import domain.model.Currency
 import domain.model.CurrencyCode
+import domain.model.DisplayResult
 import domain.model.RateStatus
 import domain.model.RequestState
 import headerColor
@@ -59,7 +66,7 @@ fun HomeHeader(
     target: RequestState<Currency>,
     onSwitchClick: () -> Unit,
     onRatesRefresh: () -> Unit,
-    onAmountChange: (Double) -> Unit
+    onAmountChange: (Double) -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -131,6 +138,11 @@ fun CurrencyInputs(
     target: RequestState<Currency>,
     onSwitchClick: () -> Unit,
 ) {
+    var animationStarted by remember { mutableStateOf(false) }
+    val animatedRotation by animateFloatAsState(
+        targetValue = if (animationStarted) 180f else 0f,
+        animationSpec = tween(durationMillis = 500)
+    )
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -145,10 +157,10 @@ fun CurrencyInputs(
             modifier = Modifier
                 .padding(top = 24.dp)
                 .graphicsLayer {
-//                    rotationY = animatedRotation
+                    rotationY = animatedRotation
                 },
             onClick = {
-//                animationStarted = !animationStarted
+                animationStarted = !animationStarted
                 onSwitchClick()
             }
         ) {
@@ -191,25 +203,27 @@ fun RowScope.CurrencyView(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            if (currency.isSuccess()) {
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    painter = painterResource(
-                        CurrencyCode.valueOf(
-                            currency.getSuccessData().code
-                        ).flag
-                    ),
-                    tint = Color.Unspecified,
-                    contentDescription = "Country Flag"
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = CurrencyCode.valueOf(currency.getSuccessData().code).name,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = MaterialTheme.typography.titleLarge.fontSize,
-                    color = Color.White
-                )
-            }
+            currency.DisplayResult(
+                onSuccess = {
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        painter = painterResource(
+                            CurrencyCode.valueOf(
+                                currency.getSuccessData().code
+                            ).flag
+                        ),
+                        tint = Color.Unspecified,
+                        contentDescription = "Country Flag"
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = CurrencyCode.valueOf(currency.getSuccessData().code).name,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                        color = Color.White
+                    )
+                }
+            )
         }
     }
 }
