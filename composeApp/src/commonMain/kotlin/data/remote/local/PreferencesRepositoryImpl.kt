@@ -1,11 +1,15 @@
 package data.remote.local
 
+import androidx.compose.runtime.key
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.coroutines.FlowSettings
 import com.russhwolf.settings.coroutines.toFlowSettings
 import domain.PreferencesRepository
+import domain.model.CurrencyCode
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -18,6 +22,10 @@ import kotlinx.datetime.toLocalDateTime
 class PreferencesRepositoryImpl(val settings: Settings) : PreferencesRepository {
     companion object {
         const val TIMESTAMP_KEY = "lastUpdated"
+        const val SOURCE_CURRENCY_KEY = "SOURCE_CURRENCY_KEY"
+        const val TARGET_CURRENCY_KEY = "TARGET_CURRENCY_KEY"
+        val DEFAULT_SOURCE_CURRENCY = CurrencyCode.USD.name
+        val DEFAULT_TARGET_CURRENCY = CurrencyCode.EUR.name
     }
 
     private val flowSettings: FlowSettings = (settings as ObservableSettings).toFlowSettings()
@@ -43,5 +51,33 @@ class PreferencesRepositoryImpl(val settings: Settings) : PreferencesRepository 
             daysDifference < 1
         } else
             false
+    }
+
+    override suspend fun saveSourceCurrencyCode(code: String) {
+        flowSettings.putString(
+            key = SOURCE_CURRENCY_KEY,
+            value = code
+        )
+    }
+
+    override suspend fun saveTargetCurrencyCode(code: String) {
+        flowSettings.putString(
+            key = TARGET_CURRENCY_KEY,
+            value = code
+        )
+    }
+
+    override fun readSourceCurrencyCode(): Flow<CurrencyCode> {
+        return flowSettings.getStringFlow(
+            key = SOURCE_CURRENCY_KEY,
+            defaultValue = DEFAULT_SOURCE_CURRENCY
+        ).map { CurrencyCode.valueOf(it) }
+    }
+
+    override fun readTargetCurrencyCode(): Flow<CurrencyCode> {
+        return flowSettings.getStringFlow(
+            key = TARGET_CURRENCY_KEY,
+            defaultValue = DEFAULT_TARGET_CURRENCY
+        ).map { CurrencyCode.valueOf(it) }
     }
 }
