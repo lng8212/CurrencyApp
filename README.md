@@ -21,5 +21,6 @@ Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-mu
 
 
 *iOS 
+
 ![Simulator Screenshot - iPhone 15 - 2024-06-29 at 19 00 03](https://github.com/lng8212/CurrencyApp/assets/69128515/a5836ae6-a480-4771-a68c-21e26a1ce0f9)
 
