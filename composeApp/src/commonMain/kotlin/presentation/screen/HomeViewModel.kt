@@ -1,6 +1,7 @@
 package presentation.screen
 
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.material3.DisplayMode
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
@@ -11,9 +12,11 @@ import domain.CurrencyApiService
 import domain.MongoRepository
 import domain.PreferencesRepository
 import domain.model.Currency
+import domain.model.CurrencyCode
 import domain.model.RateStatus
 import domain.model.RequestState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -26,7 +29,9 @@ import kotlinx.datetime.Clock
 
 sealed class HomeUiEvent {
     data object RefreshRates : HomeUiEvent()
-    data object SwitchCurrencies: HomeUiEvent()
+    data object SwitchCurrencies : HomeUiEvent()
+    data class SaveSourceCurrencyCode(val code: String) : HomeUiEvent()
+    data class SaveTargetCurrencyCode(val code: String) : HomeUiEvent()
 }
 
 class HomeViewModel(
@@ -59,46 +64,64 @@ class HomeViewModel(
 
     fun sendEvent(event: HomeUiEvent) {
         when (event) {
-            HomeUiEvent.RefreshRates -> {
+            is HomeUiEvent.RefreshRates -> {
                 screenModelScope.launch {
                     fetchNewRates()
                 }
             }
-            HomeUiEvent.SwitchCurrencies -> {
+
+            is HomeUiEvent.SwitchCurrencies -> {
                 switchCurrencies()
+            }
+            is HomeUiEvent.SaveSourceCurrencyCode -> {
+                saveSourceCurrencyCode(event.code)
+            }
+
+            is HomeUiEvent.SaveTargetCurrencyCode -> {
+                saveTargetCurrencyCode(event.code)
             }
         }
     }
 
-    private fun switchCurrencies(){
+    private fun saveSourceCurrencyCode(code: String){
+        screenModelScope.launch(Dispatchers.IO){
+            preferences.saveSourceCurrencyCode(code)
+        }
+    }
+
+    private fun saveTargetCurrencyCode(code: String){
+        screenModelScope.launch(Dispatchers.IO) {
+            preferences.saveTargetCurrencyCode(code)
+        }
+    }
+
+    private fun switchCurrencies() {
         val sourceCurrency = _sourceCurrency.value
-        val targetCurrency =_targetCurrency.value
+        val targetCurrency = _targetCurrency.value
         _sourceCurrency.value = targetCurrency
         _targetCurrency.value = sourceCurrency
     }
 
-    private fun readSourceCurrency(){
+    private fun readSourceCurrency() {
         screenModelScope.launch(Dispatchers.Main) {
-            preferences.readSourceCurrencyCode().collectLatest {currency->
+            preferences.readSourceCurrencyCode().collectLatest { currency ->
                 val selectedCurrency = _allCurrencies.find { it.code == currency.name }
-                if(selectedCurrency!= null){
-                    _sourceCurrency.value = RequestState.Success(data =  selectedCurrency)
-                }
-                else {
+                if (selectedCurrency != null) {
+                    _sourceCurrency.value = RequestState.Success(data = selectedCurrency)
+                } else {
                     _sourceCurrency.value = RequestState.Error(message = "Couldn't find")
                 }
             }
         }
     }
 
-    private fun readTargetCurrency(){
+    private fun readTargetCurrency() {
         screenModelScope.launch(Dispatchers.Main) {
-            preferences.readTargetCurrencyCode().collectLatest {currency->
+            preferences.readTargetCurrencyCode().collectLatest { currency ->
                 val selectedCurrency = _allCurrencies.find { it.code == currency.name }
-                if(selectedCurrency!= null){
-                    _targetCurrency.value = RequestState.Success(data =  selectedCurrency)
-                }
-                else {
+                if (selectedCurrency != null) {
+                    _targetCurrency.value = RequestState.Success(data = selectedCurrency)
+                } else {
                     _targetCurrency.value = RequestState.Error(message = "Couldn't find")
                 }
             }
@@ -116,16 +139,14 @@ class HomeViewModel(
                     if (!preferences.isDataFetch(Clock.System.now().toEpochMilliseconds())) {
                         println("HomeViewModel: DATA NOT FRESH")
                         cacheTheData()
-                    }
-                    else{
+                    } else {
                         println("HomeViewModel: DATA IS FRESH")
                     }
                 } else {
                     println("HomeViewModel: DATABASE NEEDS DATA")
                     cacheTheData()
                 }
-            }
-            else if (localCache.isError()) {
+            } else if (localCache.isError()) {
                 println("HomeViewModel: ERROR READING LOCAL DATABASE ${localCache.getErrorMessage()}")
             }
             getRateStatus()

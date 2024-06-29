@@ -10,7 +10,7 @@ import presentation.screen.HomeScreen
 @Preview
 fun App() {
 //    val color = if (isSystemInDarkTheme()) DarkColors else LightColors
-    initializeKoin()
+
     MaterialTheme {
         Navigator(HomeScreen())
     }

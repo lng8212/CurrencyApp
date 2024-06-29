@@ -61,7 +61,7 @@ fun CurrencyCodePickerView(
     }
 
     val animatedAlpha by animateFloatAsState(
-        targetValue = if (isSelected) 1f else 0f,
+        targetValue = if (isSelected) 1f else 0.2f,
         animationSpec = tween(durationMillis = 300)
     )
     Row(
