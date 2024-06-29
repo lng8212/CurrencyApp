@@ -46,6 +46,6 @@ fun displayCurrentDateTime(): String {
     return "$dayOfMonth$suffix $month, $year."
 }
 //
-//@OptIn(ExperimentalResourceApi::class)
-//@Composable
-//fun GetBebasFontFamily() = FontFamily(Font(Res.font.bebas_nue_regular))
+
+@Composable
+fun GetBebasFontFamily() = FontFamily(org.jetbrains.compose.resources.Font(Res.font.bebas_nue_regular))
