@@ -17,7 +17,8 @@ Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-mu
 
 *Android
 
-![Demo](https://github.com/lng8212/CurrencyApp/assets/69128515/bd6a8c99-db74-4b4a-ab01-971824500e0c)
+![Screen_recording_20240629_184619](https://github.com/lng8212/CurrencyApp/assets/69128515/820cadf1-d036-457c-9758-93ad5cca1d11)
+
 
 *iOS 
 ![simulator_screenshot_245BDBF4-DA60-4CFF-865A-42F53E5AA217](https://github.com/lng8212/CurrencyApp/assets/69128515/184484ee-2403-43fc-afca-dc8a090fa512)
